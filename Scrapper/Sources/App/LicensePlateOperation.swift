@@ -45,7 +45,13 @@ class LicensePlateOperation: AsyncOperation {
         let parameters: [String: Any] = ["plate": licensePlate,
                                          "state": stateString]
         
-        let request = LicensePlateNetworkRequest(parameters: parameters)
+        // website will block rapid and quick calls
+        // x-forwarded-for can act as a "spoof" for this website as
+        // it will think this IP is the "original" IP and use this IP
+        let randomIPAddress = generateIPAddress()
+        let headers: [String: Any] = ["X-Forwarded-For": randomIPAddress]
+        
+        let request = LicensePlateNetworkRequest(parameters: parameters, headers: headers)
         
         client.send(request: request) { (result) in
             switch result {
@@ -93,5 +99,20 @@ class LicensePlateOperation: AsyncOperation {
         }
         
         return text
+    }
+    
+    private func generateIPAddress() -> String {
+        var values: [String] = []
+        
+        while values.count != 4 {
+            
+            guard let randomNumber = (0...255).randomElement() else {
+                continue
+            }
+            
+            values.append(String(randomNumber))
+        }
+        
+        return values.joined(separator: ".")
     }
 }

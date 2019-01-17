@@ -21,15 +21,11 @@ struct LicensePlateNetworkRequest: NetworkRequest {
         return .get
     }
     
-    var parameters: [String : Any]?
+    var parameters: [String: Any]?
     
-    var headers: [String : Any]? {
-        return nil
-    }
+    var headers: [String: Any]?
     
     var body: NetworkBody? {
         return nil
     }
-    
-    
 }

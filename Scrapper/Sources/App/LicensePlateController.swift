@@ -16,14 +16,14 @@ final class LicensePlateController {
     private let operationQueue = OperationQueue()
     
     init() {
-        operationQueue.maxConcurrentOperationCount = 1
+        operationQueue.maxConcurrentOperationCount = 2
     }
     
     func getAllCarInfo() -> Set<CarInfo> {
         
         var totalCarInfos: Set<CarInfo> = []
         
-        for i in 4...9 {
+        for i in 4...8 {
             
             let maxCount = 1
             
