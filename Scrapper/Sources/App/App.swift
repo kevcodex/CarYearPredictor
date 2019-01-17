@@ -13,6 +13,8 @@ public final class App {
                 Console.writeMessage(error)
             }
         }
+        
+        print("FINISHED")
     }
     
     public init() {}

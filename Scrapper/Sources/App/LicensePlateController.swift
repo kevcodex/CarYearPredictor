@@ -30,6 +30,8 @@ final class LicensePlateController {
             
             var carInfos: Set<CarInfo> = []
             
+            var attemptedPlates: Set<String> = []
+            
             // Keep getting license plates until read set goal count
             while carInfos.count != maxCount {
                 
@@ -62,13 +64,15 @@ final class LicensePlateController {
                         continue
                     }
                     
-                    let doesAlreadyHaveCar = carInfos.contains { $0.licensePlate == randomCALicensePlate }
+                    let alreadyAttemptedPlate = attemptedPlates.contains(randomCALicensePlate)
                     
-                    guard !doesAlreadyHaveCar else {
+                    guard !alreadyAttemptedPlate else {
                         continue
                     }
                     
                     print(randomCALicensePlate)
+                    
+                    attemptedPlates.insert(randomCALicensePlate)
                     
                     let licensePlateOperation = LicensePlateOperation(licensePlate: randomCALicensePlate, state: "ca", blackListedIPs: blackListedIPs)
                     
