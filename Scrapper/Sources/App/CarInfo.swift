@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct CarInfo {
+struct CarInfo: Hashable {
+    let licensePlate: String
     let make: String
     let model: String
     let year: String

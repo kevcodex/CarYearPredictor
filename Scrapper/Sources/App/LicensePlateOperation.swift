@@ -14,12 +14,16 @@ class LicensePlateOperation: AsyncOperation {
     
     enum Error: Swift.Error {
         case networkError(MiniNeError)
+        case noCarInfo
+        case IPAddressBlocked
         case kannaError(Swift.Error)
     }
     
     // Inputs
     let licensePlate: String
     let stateString: String
+    
+    let client = MiniNeClient()
     
     // Outputs
     var result: Result<CarInfo, Error>? {
@@ -43,7 +47,6 @@ class LicensePlateOperation: AsyncOperation {
         
         let request = LicensePlateNetworkRequest(parameters: parameters)
         
-        let client = MiniNeClient()
         client.send(request: request) { (result) in
             switch result {
             case .success(let response):
@@ -59,20 +62,26 @@ class LicensePlateOperation: AsyncOperation {
         do {
             let html = try HTML(html: response.data, encoding: .utf8)
             
-            let make = getFirstText(from: html, with: "//li[@class='ii-brand']//a") ?? ""
-            let model = getFirstText(from: html, with: "//li[@class='ii-car']//a") ?? ""
-            let year = getFirstText(from: html, with: "//li[@class='ii-calendar']//a") ?? ""
+            guard let innerHTML = html.innerHTML,
+                !innerHTML.contains("You are blocked") else {
+                    self.result = Result(error: .IPAddressBlocked)
+                    return
+            }
             
-            let carInfo = CarInfo(make: make, model: model, year: year)
+            guard let make = getFirstText(from: html, with: "//li[@class='ii-brand']//a"),
+                let model = getFirstText(from: html, with: "//li[@class='ii-car']//a"),
+                let year = getFirstText(from: html, with: "//li[@class='ii-calendar']//a") else {
+                    self.result = Result(error: .noCarInfo)
+                    return
+            }
+            
+            let carInfo = CarInfo(licensePlate: licensePlate, make: make, model: model, year: year)
             
             self.result = Result(value: carInfo)
         } catch {
             self.result = Result(error: .kannaError(error))
             return
         }
-        
-        
-        
     }
     
     private func getFirstText(from html: HTMLDocument, with path: String) -> String? {
