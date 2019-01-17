@@ -68,13 +68,13 @@ class LicensePlateOperation: AsyncOperation {
     private func scrapHTML(from response: Response, ipAddress: String) {
         
         do {
-            let html = try HTML(html: response.data, encoding: .utf8)
-            
-            guard let innerHTML = html.innerHTML,
-                !innerHTML.contains("You are blocked") else {
+            guard let string = String(data: response.data, encoding: .utf8),
+                !string.contains("You are blocked") else {
                     self.result = Result(error: .IPAddressBlocked(address: ipAddress))
                     return
             }
+            
+            let html = try HTML(html: response.data, encoding: .utf8)
             
             guard let make = getFirstText(from: html, with: "//li[@class='ii-brand']//a"),
                 let model = getFirstText(from: html, with: "//li[@class='ii-car']//a"),
