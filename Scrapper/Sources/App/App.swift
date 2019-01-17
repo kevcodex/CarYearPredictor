@@ -1,13 +1,18 @@
 import Foundation
+import ScriptHelpers
 
 public final class App {
     public func start() {
         
         let controller = LicensePlateController()
-        
-        let allCarInfo = controller.getAllCarInfo()
-        
-        print(allCarInfo)
+            
+        controller.getAllCarInfo { carInfos in
+            do {
+                try controller.writeCarInfoIntoCSV(with: carInfos)
+            } catch {
+                Console.writeMessage(error)
+            }
+        }
     }
     
     public init() {}

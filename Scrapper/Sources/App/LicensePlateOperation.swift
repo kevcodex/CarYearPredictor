@@ -15,13 +15,14 @@ class LicensePlateOperation: AsyncOperation {
     enum Error: Swift.Error {
         case networkError(MiniNeError)
         case noCarInfo
-        case IPAddressBlocked
+        case IPAddressBlocked(address: String)
         case kannaError(Swift.Error)
     }
     
     // Inputs
     let licensePlate: String
     let stateString: String
+    let blackListedIPs: Set<String>
     
     let client = MiniNeClient()
     
@@ -32,10 +33,11 @@ class LicensePlateOperation: AsyncOperation {
         }
     }
     
-    init(licensePlate: String, state: String) {
+    init(licensePlate: String, state: String, blackListedIPs: Set<String>) {
         
         self.licensePlate = licensePlate
         self.stateString = state
+        self.blackListedIPs = blackListedIPs
         
         super.init()
     }
@@ -56,21 +58,21 @@ class LicensePlateOperation: AsyncOperation {
         client.send(request: request) { (result) in
             switch result {
             case .success(let response):
-                self.scrapHTML(from: response)
+                self.scrapHTML(from: response, ipAddress: randomIPAddress)
             case .failure(let error):
                 self.result = Result(error: .networkError(error))
             }
         }
     }
     
-    private func scrapHTML(from response: Response) {
+    private func scrapHTML(from response: Response, ipAddress: String) {
         
         do {
             let html = try HTML(html: response.data, encoding: .utf8)
             
             guard let innerHTML = html.innerHTML,
                 !innerHTML.contains("You are blocked") else {
-                    self.result = Result(error: .IPAddressBlocked)
+                    self.result = Result(error: .IPAddressBlocked(address: ipAddress))
                     return
             }
             
@@ -113,6 +115,13 @@ class LicensePlateOperation: AsyncOperation {
             values.append(String(randomNumber))
         }
         
-        return values.joined(separator: ".")
+        let IP = values.joined(separator: ".")
+        
+        // Regenerate a blacklisted IP
+        if blackListedIPs.contains(IP) {
+            return generateIPAddress()
+        }
+        
+        return IP
     }
 }
